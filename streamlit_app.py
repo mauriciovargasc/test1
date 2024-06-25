@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Load the cleaned data
-file_path = r"C:\Users\puert\Downloads\test1.csv" # Use the path to your cleaned data file
+file_path = r"test1.csv" # Use the path to your cleaned data file
 data = pd.read_csv(file_path)
 
 # Function to calculate rewards

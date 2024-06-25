@@ -1,40 +1,43 @@
-import altair as alt
-import numpy as np
-import pandas as pd
 import streamlit as st
+import pandas as pd
 
-"""
-# Welcome to Streamlit!
+# Load the cleaned data
+file_path = r"C:\Users\puert\Downloads\test1.csv" # Use the path to your cleaned data file
+data = pd.read_csv(file_path)
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:.
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
+# Function to calculate rewards
+def calculate_rewards(selected_cards, spending):
+    total_rewards = 0
+    for card in selected_cards:
+        card_data = data[data['Card Name'] == card].iloc[0]
+        rewards = eval(card_data['Rewards'])  # Assuming rewards are stored as a list of tuples (category, rate)
+        for category, rate in rewards:
+            if category in spending:
+                total_rewards += spending[category] * rate
+    return total_rewards
 
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
+# Streamlit app layout
+st.title("Credit Card Rewards Optimization")
 
-num_points = st.slider("Number of points in spiral", 1, 10000, 1100)
-num_turns = st.slider("Number of turns in spiral", 1, 300, 31)
+# Step 1: Select credit cards
+selected_cards = st.multiselect("Select Your Credit Cards", data['Card Name'].unique())
 
-indices = np.linspace(0, 1, num_points)
-theta = 2 * np.pi * num_turns * indices
-radius = indices
+# Step 2: Input monthly spending
+st.subheader("Enter Your Monthly Spending")
+categories = ['Travel', 'Dining', 'Groceries', 'Other']
+spending = {}
+for category in categories:
+    spending[category] = st.number_input(f"{category} Spending", min_value=0.0, value=0.0)
 
-x = radius * np.cos(theta)
-y = radius * np.sin(theta)
+# Step 3: Calculate and display rewards
+if st.button("Calculate Rewards"):
+    total_rewards = calculate_rewards(selected_cards, spending)
+    st.subheader(f"Total Rewards Earned: ${total_rewards:.2f}")
 
-df = pd.DataFrame({
-    "x": x,
-    "y": y,
-    "idx": indices,
-    "rand": np.random.randn(num_points),
-})
-
-st.altair_chart(alt.Chart(df, height=700, width=700)
-    .mark_point(filled=True)
-    .encode(
-        x=alt.X("x", axis=None),
-        y=alt.Y("y", axis=None),
-        color=alt.Color("idx", legend=None, scale=alt.Scale()),
-        size=alt.Size("rand", legend=None, scale=alt.Scale(range=[1, 150])),
-    ))
+# Display the selected cards and their reward structures
+if selected_cards:
+    st.subheader("Selected Credit Cards and Their Reward Structures")
+    for card in selected_cards:
+        card_data = data[data['Card Name'] == card].iloc[0]
+        st.write(f"**{card}**")
+        st.write(card_data['Rewards'])
